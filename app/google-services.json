@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "299021309618",
+    "firebase_url": "https://userloactionupdate.firebaseio.com",
+    "project_id": "userloactionupdate",
+    "storage_bucket": "userloactionupdate.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:299021309618:android:7a65d4c9156f7d1a00dbab",
+        "android_client_info": {
+          "package_name": "com.akshcabs.userloactionupdate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "299021309618-dqgubkrfasa6evikc4bvs6r20ohb339j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.akshcabs.userloactionupdate",
+            "certificate_hash": "1926370e3f256dd7cc608cb241ebdb6da4b2f626"
+          }
+        },
+        {
+          "client_id": "299021309618-dnrivivpo4v707ovfktkhenuitjk17b0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAE6txOaBmPnFZB1Sg3w--75UU0tGzZU-w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "299021309618-dnrivivpo4v707ovfktkhenuitjk17b0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
