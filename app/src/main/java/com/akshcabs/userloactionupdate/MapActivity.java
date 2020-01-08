@@ -154,5 +154,9 @@ public class MapActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        Intent service=new Intent(MapActivity.this,LiveUpdateService.class);
+        startService(service);
+        Toast.makeText(this, "Tracking Enabled.", Toast.LENGTH_SHORT).show();
     }
 }
