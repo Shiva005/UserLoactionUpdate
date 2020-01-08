@@ -1,21 +1,16 @@
 package com.akshcabs.userloactionupdate;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -27,7 +22,6 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -37,9 +31,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.akshcabs.userloactionupdate.RegistrationActivity.mAuth;
-
-public class MapActivity extends AppCompatActivity {
+public class ViewAllUsers extends AppCompatActivity {
 
     private SupportMapFragment supportMapFragment;
     private FusedLocationProviderClient myclient;
@@ -50,25 +42,25 @@ public class MapActivity extends AppCompatActivity {
     private List longitude;
     private List latitude;
     private List ForMarkers;
-    FirebaseDatabase firebaseDatabase;
-    DatabaseReference databaseReference;
-    LatLng mylatlng;
-    Handler handler;
-
+    private FirebaseDatabase firebaseDatabase;
+    private DatabaseReference databaseReference;
+    private LatLng mylatlng;
+    private TextView textView;
+    private boolean status = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map);
+        setContentView(R.layout.activity_view_all_users);
+        textView = findViewById(R.id.textView);
 
         longitude = new ArrayList<>();
         latitude = new ArrayList<>();
         ForMarkers = new ArrayList<>();
-        handler=new Handler();
 
         firebaseDatabase = FirebaseDatabase.getInstance();
 
-        supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapSecond);
         myclient = LocationServices.getFusedLocationProviderClient(this);
 
         checkLocationPermission();
@@ -80,33 +72,46 @@ public class MapActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         } else {
             flag = true;
-            //Toast.makeText(this, "Location Permission Granted", Toast.LENGTH_SHORT).show();
+            databaseReference = firebaseDatabase.getReference();
+            databaseReference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                        LocationModel LM = ds.getValue(LocationModel.class);
+                        longitude.add(LM.getLongitude());
+                        latitude.add(LM.getLatitude());
 
-            myclient.getLastLocation().addOnSuccessListener
-                    (new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            if (location != null) {
-                                lastLocation = location;
-                                dlatitude = lastLocation.getLatitude();
-                                dlongitude = lastLocation.getLongitude();
-                                sendUserDatatoFirebase();
-                            }
-                            initMap();
-                        }
-                    });
+                    }
+
+                    for (int i = 0; i < longitude.size(); i++) {
+                        dlatitude = (double) latitude.get(i);
+                        dlongitude = (double) longitude.get(i);
+                        //textView.append(""+dlatitude+"\t\t\t"+dlongitude+"\n");
+
+                        storeLocation();
+                    }
+
+                    initMap();
+
+                    //Toast.makeText(ViewAllUsers.this, "" + longitude, Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(ViewAllUsers.this, "Operation Cancelled !!", Toast.LENGTH_SHORT).show();
+                }
+            });
 
         }
     }
 
-    private void sendUserDatatoFirebase() {
-        databaseReference = firebaseDatabase.getReference(mAuth.getUid());
+    private void storeLocation() {
         mylatlng = new LatLng(dlatitude, dlongitude);
-        databaseReference.setValue(mylatlng);
+        ForMarkers.add(mylatlng);
     }
 
+
     void initMap() {
-        //Toast.makeText(this, "Initialize Map", Toast.LENGTH_SHORT).show();
         supportMapFragment.getMapAsync(new OnMapReadyCallback() {
             @SuppressLint("MissingPermission")
             @Override
@@ -117,14 +122,20 @@ public class MapActivity extends AppCompatActivity {
                     gmap.animateCamera(CameraUpdateFactory.newLatLngZoom(mylatlng, 13.0f));
                     gmap.setMyLocationEnabled(true);
                     MarkerOptions markerOptions = new MarkerOptions();
-                    markerOptions.title("You are Here");
-                    markerOptions.position(mylatlng);
-                    gmap.addMarker(markerOptions);
 
+                    Toast.makeText(ViewAllUsers.this, ""+ForMarkers.size(), Toast.LENGTH_LONG).show();
+                    BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.male_icon);
+                    for (int i = 0; i < ForMarkers.size(); i++) {
+                        markerOptions.position((LatLng) ForMarkers.get(i));
+                        //markerOptions.title("You are here");
+                        markerOptions.icon(icon);
+                        gmap.addMarker(markerOptions);
+                    }
                 }
             }
         });
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -135,24 +146,5 @@ public class MapActivity extends AppCompatActivity {
                 Toast.makeText(this, "Location Permission Denied", Toast.LENGTH_SHORT).show();
             }
         }
-    }
-
-    public void ViewAll(View view) {
-        startActivity(new Intent(MapActivity.this,ViewAllUsers.class));
-    }
-
-    public void SignOut(View view) {
-        mAuth.signOut();
-        Toast.makeText(this, "Logged Out", Toast.LENGTH_SHORT).show();
-        //removes popup type of screen
-        finish();
-        overridePendingTransition(0, 0);
-        startActivity(new Intent(MapActivity.this,RegistrationActivity.class));
-        overridePendingTransition(0, 0);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
     }
 }
