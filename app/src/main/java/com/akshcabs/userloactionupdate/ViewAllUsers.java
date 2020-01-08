@@ -64,7 +64,6 @@ public class ViewAllUsers extends AppCompatActivity {
         myclient = LocationServices.getFusedLocationProviderClient(this);
 
         checkLocationPermission();
-
     }
 
     private void checkLocationPermission() {
@@ -119,8 +118,6 @@ public class ViewAllUsers extends AppCompatActivity {
                 gmap = googleMap;
                 if (flag) {
 
-                    gmap.animateCamera(CameraUpdateFactory.newLatLngZoom(mylatlng, 13.0f));
-                    gmap.setMyLocationEnabled(true);
                     MarkerOptions markerOptions = new MarkerOptions();
 
                     Toast.makeText(ViewAllUsers.this, ""+ForMarkers.size(), Toast.LENGTH_LONG).show();
@@ -130,6 +127,11 @@ public class ViewAllUsers extends AppCompatActivity {
                         //markerOptions.title("You are here");
                         markerOptions.icon(icon);
                         gmap.addMarker(markerOptions);
+                    }
+
+                    if(ForMarkers.size()==longitude.size()){
+                        gmap.animateCamera(CameraUpdateFactory.newLatLngZoom(mylatlng, 13.0f));
+                        gmap.setMyLocationEnabled(true);
                     }
                 }
             }

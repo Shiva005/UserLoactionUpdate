@@ -52,12 +52,12 @@ public class LiveUpdateService extends Service {
 
         // Create the persistent notification//
         Notification.Builder builder = new Notification.Builder(this)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText(getString(R.string.tracking_enabled_notif))
+                .setContentTitle("Driver App AKSH CABS")
+                .setContentText("Running APp")
                 .setOngoing(true)   //notification can’t be dismissed by the user
                 .setContentIntent(broadcastIntent)
                 .setSmallIcon(R.drawable.female_icon);
-        startForeground(1, builder.build());
+        //startForeground(1, builder.build());
 
     }
 
@@ -75,7 +75,7 @@ public class LiveUpdateService extends Service {
         LocationRequest request = new LocationRequest();
 
         //Specify how often your app should request the device’s location//
-        request.setInterval(1000);
+        request.setInterval(60000);
         //Get the most accurate location data available//
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);

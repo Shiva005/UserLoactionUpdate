@@ -1,21 +1,16 @@
 package com.akshcabs.userloactionupdate;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -23,19 +18,11 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.akshcabs.userloactionupdate.RegistrationActivity.mAuth;
 
@@ -47,24 +34,14 @@ public class MapActivity extends AppCompatActivity {
     private double dlatitude, dlongitude;
     boolean flag = false;
     private GoogleMap gmap;
-    private List longitude;
-    private List latitude;
-    private List ForMarkers;
     FirebaseDatabase firebaseDatabase;
     DatabaseReference databaseReference;
     LatLng mylatlng;
-    Handler handler;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
-
-        longitude = new ArrayList<>();
-        latitude = new ArrayList<>();
-        ForMarkers = new ArrayList<>();
-        handler=new Handler();
 
         firebaseDatabase = FirebaseDatabase.getInstance();
 
@@ -154,7 +131,6 @@ public class MapActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
         Intent service=new Intent(MapActivity.this,LiveUpdateService.class);
         startService(service);
         Toast.makeText(this, "Tracking Enabled.", Toast.LENGTH_SHORT).show();
