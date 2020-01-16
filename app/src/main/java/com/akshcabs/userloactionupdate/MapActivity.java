@@ -2,15 +2,20 @@ package com.akshcabs.userloactionupdate;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -67,19 +72,20 @@ public class MapActivity extends AppCompatActivity {
                                 lastLocation = location;
                                 dlatitude = lastLocation.getLatitude();
                                 dlongitude = lastLocation.getLongitude();
-                                sendUserDatatoFirebase();
+
+                                mylatlng = new LatLng(dlatitude, dlongitude);
+
+                                databaseReference = firebaseDatabase.getReference(mAuth.getUid());
+                                databaseReference.setValue(mylatlng);
+                                initMap();
+
+                            }else{
+                                Toast.makeText(MapActivity.this, "Went wrong", Toast.LENGTH_SHORT).show();
                             }
-                            initMap();
                         }
                     });
 
         }
-    }
-
-    private void sendUserDatatoFirebase() {
-        databaseReference = firebaseDatabase.getReference(mAuth.getUid());
-        mylatlng = new LatLng(dlatitude, dlongitude);
-        databaseReference.setValue(mylatlng);
     }
 
     void initMap() {
@@ -131,8 +137,15 @@ public class MapActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Intent service=new Intent(MapActivity.this,LiveUpdateService.class);
-        startService(service);
-        Toast.makeText(this, "Tracking Enabled.", Toast.LENGTH_SHORT).show();
+
+        LocationUpdateService.service=true;
+        String input = "running";
+
+        Intent serviceIntent = new Intent(this, LocationUpdateService.class);
+        serviceIntent.putExtra("inputExtra", input);
+
+        ContextCompat.startForegroundService(this, serviceIntent);
+
+        Log.d("hii","ONRESUME CALLED");
     }
 }

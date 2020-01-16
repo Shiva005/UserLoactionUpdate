@@ -22,6 +22,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -64,12 +65,14 @@ public class ViewAllUsers extends AppCompatActivity {
         myclient = LocationServices.getFusedLocationProviderClient(this);
 
         checkLocationPermission();
+
     }
 
     private void checkLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         } else {
+
             flag = true;
             databaseReference = firebaseDatabase.getReference();
             databaseReference.addValueEventListener(new ValueEventListener() {
@@ -86,12 +89,9 @@ public class ViewAllUsers extends AppCompatActivity {
                         dlatitude = (double) latitude.get(i);
                         dlongitude = (double) longitude.get(i);
                         //textView.append(""+dlatitude+"\t\t\t"+dlongitude+"\n");
-
                         storeLocation();
                     }
-
                     initMap();
-
                     //Toast.makeText(ViewAllUsers.this, "" + longitude, Toast.LENGTH_LONG).show();
                 }
 
@@ -100,15 +100,12 @@ public class ViewAllUsers extends AppCompatActivity {
                     Toast.makeText(ViewAllUsers.this, "Operation Cancelled !!", Toast.LENGTH_SHORT).show();
                 }
             });
-
         }
     }
-
     private void storeLocation() {
         mylatlng = new LatLng(dlatitude, dlongitude);
         ForMarkers.add(mylatlng);
     }
-
 
     void initMap() {
         supportMapFragment.getMapAsync(new OnMapReadyCallback() {
@@ -116,11 +113,12 @@ public class ViewAllUsers extends AppCompatActivity {
             @Override
             public void onMapReady(GoogleMap googleMap) {
                 gmap = googleMap;
+                gmap.clear();
                 if (flag) {
 
                     MarkerOptions markerOptions = new MarkerOptions();
 
-                    Toast.makeText(ViewAllUsers.this, ""+ForMarkers.size(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(ViewAllUsers.this, "" + ForMarkers.size(), Toast.LENGTH_LONG).show();
                     BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.male_icon);
                     for (int i = 0; i < ForMarkers.size(); i++) {
                         markerOptions.position((LatLng) ForMarkers.get(i));
@@ -129,10 +127,9 @@ public class ViewAllUsers extends AppCompatActivity {
                         gmap.addMarker(markerOptions);
                     }
 
-                    if(ForMarkers.size()==longitude.size()){
-                        gmap.animateCamera(CameraUpdateFactory.newLatLngZoom(mylatlng, 13.0f));
-                        gmap.setMyLocationEnabled(true);
-                    }
+                    ForMarkers.clear();
+                    longitude.clear();
+                    latitude.clear();
                 }
             }
         });
@@ -145,7 +142,7 @@ public class ViewAllUsers extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 checkLocationPermission();
             } else {
-                Toast.makeText(this, "Location Permission Denied", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Location Permission Denied.", Toast.LENGTH_SHORT).show();
             }
         }
     }

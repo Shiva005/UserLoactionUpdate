@@ -1,17 +1,15 @@
 package com.akshcabs.userloactionupdate;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
+import android.app.IntentService;
 import android.app.Notification;
-import android.app.PendingIntent;
-import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.os.IBinder;
+import android.os.Build;
+import android.os.PowerManager;
+import android.os.SystemClock;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -26,59 +24,64 @@ import com.google.android.gms.location.LocationServices;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import static com.akshcabs.userloactionupdate.App.CHANNEL_ID;
 import static com.akshcabs.userloactionupdate.RegistrationActivity.mAuth;
 
-public class LiveUpdateService extends Service {
+public class LocationUpdateService extends IntentService {
+    private static final String TAG = "ExampleIntentService";
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    private PowerManager.WakeLock wakeLock;
+    String id="0";
+    public static boolean service=true;
+
+    public LocationUpdateService() {
+        super("ExampleIntentService");
+        setIntentRedelivery(true);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        buildNotification();
-        UpdateLocationFirebase();
-        Toast.makeText(LiveUpdateService.this, "val:  ", Toast.LENGTH_LONG).show();
-    }
+        Log.d(TAG, "onCreate");
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        assert powerManager != null;
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                "ExampleApp:Wakelock");
+        wakeLock.acquire(10*60*1000L /*10 minutes*/);
+        Log.d(TAG, "Wakelock acquired");
 
-    @SuppressLint("NewApi")
-    private void buildNotification() {
-        String stop = "stop";
-        registerReceiver(stopReceiver, new IntentFilter(stop));
-        PendingIntent broadcastIntent = PendingIntent.getBroadcast(
-                this, 0, new Intent(stop), PendingIntent.FLAG_UPDATE_CURRENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification notification = new Notification.Builder(this, CHANNEL_ID)
+                    .setContentTitle("Boss is Back")
+                    .setContentText("Running...")
+                    .setSmallIcon(R.drawable.female_icon)
+                    .build();
 
-        // Create the persistent notification//
-        Notification builder = new NotificationCompat.Builder(this,"Hello")
-                .setContentTitle("Driver App AKSH CABS")
-                .setContentText("Running APp")
-                .setOngoing(true)   //notification can’t be dismissed by the user
-                .setContentIntent(broadcastIntent)
-                .setSmallIcon(R.drawable.female_icon)
-                .build();
-        //startForeground(1, builder);
-
-    }
-
-    protected BroadcastReceiver stopReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //Unregister the BroadcastReceiver when the notification is tapped//
-            unregisterReceiver(stopReceiver);
-            //Stop the Service
-            stopSelf();
+            startForeground(1, notification);
         }
-    };
+    }
+
+    @Override
+    protected void onHandleIntent(@Nullable Intent intent) {
+        Log.d(TAG, "onHandleIntent");
+
+        assert intent != null;
+        String input = intent.getStringExtra("inputExtra");
+
+        while (service) {
+
+            UpdateLocationFirebase();
+
+            Log.d("boss","Service Runnning");
+            //SystemClock.sleep(1000);
+        }
+    }
 
     private void UpdateLocationFirebase() {
         LocationRequest request = new LocationRequest();
 
-
         //Specify how often your app should request the device’s location
-        request.setInterval(3000);
+        request.setInterval(2000);
         //Get the most accurate location data available
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
@@ -95,11 +98,19 @@ public class LiveUpdateService extends Service {
 
                     if (location != null) {
                         //Save the location data to the database
-
                         ref.setValue(location);
                     }
                 }
             }, null);
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy");
+
+        wakeLock.release();
+        Log.d(TAG, "Wakelock released");
     }
 }
